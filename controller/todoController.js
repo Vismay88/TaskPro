@@ -4,12 +4,14 @@ const User = require("./../model/userModel");
 const user = require("./../model/userModel");
 const userController = require("./userController");
 const APIFeatures = require("./../utils/apiFeatures");
-const path=require("path");
-var csvToJson= require('csvtojson');  
+const Path = require("path");
+const csv=require("csv-parser");
+const fs = require('fs');
 const todoSchema = require("./../validatation/todoValidation");
-// const globalErrorHandler = require('./../Error/globalError');
 const globalErrorHandler = require("./../Error/globalErrorHandler");
 const globalSuccess = require("./../Error/globalSuccess");
+// const { error } = require("console");
+
 //create Task and Subtask in
 exports.createTodo = async (req, res, next) => {
   try {
@@ -153,12 +155,6 @@ exports.getTodo = async (req, res, next) => {
         )
       );
     }
-    // res.status(200).json({
-    //   error: false,
-    //   message:"Todo which is associated with given id is below:",
-    //   data,
-    // });
-
     return globalSuccess.sendResponse(200, "success", user, res);
   } catch (err) {
     console.log(err);
@@ -264,7 +260,11 @@ exports.deleteTodo = async (req, res, next) => {
     //   error: false,
     //   message: "Todo and its subtasks deleted successfully",
     // });
-    return globalSuccess.sendResponseDelete(200,"Todo and its subtasks deleted successfully",res)
+    return globalSuccess.sendResponseDelete(
+      200,
+      "Todo and its subtasks deleted successfully",
+      res
+    );
   } catch (err) {
     next(globalErrorHandler(err));
   }
@@ -292,9 +292,13 @@ exports.assignTo = async (req, res, next) => {
     console.log(task);
     user.assigned_tasks.push(task);
     await user.save();
-  
-    return globalSuccess.sendResponse(200,"Task Successfully assigned to users",task,res);
 
+    return globalSuccess.sendResponse(
+      200,
+      "Task Successfully assigned to users",
+      task,
+      res
+    );
   } catch (err) {
     console.log(err.name);
     next(globalErrorHandler(err));
@@ -303,7 +307,6 @@ exports.assignTo = async (req, res, next) => {
 
 //Remove asssignee from the task
 exports.deleteAssignTo = async (req, res, next) => {
-
   try {
     const task = await Todo.findById(req.params.id);
     console.log(task);
@@ -333,64 +336,159 @@ exports.deleteAssignTo = async (req, res, next) => {
       await userfind.save();
     }
 
-    return globalSuccess.sendResponse(200,"Assignee removed successfully",task,res);
+    return globalSuccess.sendResponse(
+      200,
+      "Assignee removed successfully",
+      task,
+      res
+    );
   } catch (err) {
     console.log;
     next(globalErrorHandler(err));
   }
 };
+// exports.uploadCsvFile = async (req, res, next) => {
+//   try {
+   
+//     const path = Path.resolve(__dirname,'public','image1.jpg')
 
-exports.uploadCsvFile=async(req,res,next)=>{
-  try{
-   //Conver csv file into json Array
-   var temp;
-   var arrayToInsert = [];
-   csvToJson().fromFile(req.file.path)
-   .then((jsonObj)=>{
-    console.log(jsonObj);
-  for(let i=0;i<jsonObj.length;i++){
-    // if(jsonObj.types==="subtask"){
-    var subTaskRow={
-      title:jsonObj[i]["title"],
-      description:jsonObj[i]["description"],
-      priority:jsonObj[i]["priority"],
-      due_date:jsonObj[i]["due_date"],
-      status:jsonObj[i]["status"],
-      assign_to:jsonObj[i]["assign_to"],
-      types:jsonObj[i]["types"]
-    // // temp = parseFloat(jsonObj[x].title);
-    // jsonObj[x].title = temp;  
-    // temp = parseFloat(jsonObj[x].description)  
-    // jsonObj[x].description = temp;  
-    // temp = parseFloat(jsonObj[x].status)  
-    // jsonObj[x].status = temp;  
-    // temp = parseFloat(jsonObj[x].priority)  
-    // jsonObj[x].priority = temp;  
-    // temp = parseFloat(jsonObj[x].due_date)  
-    // jsonObj[x].due_date = temp;  
-    // }
-  }
-    arrayToInsert.push(subTaskRow);
-};  
-//insertmany is used to save bulk data in database.
-//saving the data in collection(table)
- Todo.insertMany(arrayToInsert,(err,data)=>{  
-  if(err){  
-  console.log(err);  
-  }else{  
-    
-    return res.status(201).json({
-      message:"It is done"
-    })
-  }  
-     });  
-  });  
-  }catch(err){
-    console.log(err.message)
-    next(globalErrorHandler(err));
-  }
+//     const results = [];
+//     const subtasks = [];
+//     console.log(req.file);
+//     req.filename.pipe(fs.createWriteStream(path))
+//       .on('data', async (data) => {
+//         // Check if this row is a subtask
+//         const isSubtask = data.types === 'subtask';
+//         if (isSubtask) {
+//           subtasks.push(data);
+//           return;
+//         }
+       
+//         const todoData = {
+//           title: data.title,
+//           description: data.description,
+//           priority: data.priority,
+//           status: data.status,
+//           due_date: data.due_date,
+//           assign_to: data.assign_to.split(',').map((id) => id.trim()),
+//         };
+//         const isValid = ValidateTodoData(todoData);
+//         if (!isValid) throw new Error('Invalid todo data');
+//         const todo = new Todo(todoData);
+//         await todo.save();
+//         results.push(todo);
+//         // If there are any subtasks for this main task, create new Todo documents for each subtask
+//         // and add their _id to the subtasks array of the main task
+//         const subtasksForMainTask = subtasks.filter(
+//           (subtask) => subtask.parent_task === data.title
+//         );
+//         for (const subtaskData of subtasksForMainTask) {
+//           const subtask = new Todo({
+//             title: subtaskData.title,
+//             description: subtaskData.description,
+//             priority: subtaskData.priority,
+//             status: subtaskData.status,
+//             due_date: subtaskData.due_date,
+//             assign_to: subtaskData.assign_to.split(',').map((id) => id.trim()),
+//             types: 'subtask',
+//           });
+//           const isValidSubtask = ValidateTodoData(subtaskData);
+//           if (!isValidSubtask) throw new Error('Invalid subtask data');
+//           await subtask.save();
+//           results.push(subtask);
+//           todo.subtasks.push(subtask._id);
+//         }
+//         // Clear the subtasks array so it's ready for the next main task
+//         subtasks.length = 0;
+//       })
+//       .on('end', () => {
+//         // Once all rows have been processed, send a response with the number of documents added to the database
+//         res.json({
+//           status: 'success',
+//           message: `${results.length} documents added to the database`,
+//         });
+//       });
+//   } catch (err) {
+//     // next(err);
+//     console.log(err)
+//   }}
 
-}
+// exports.uploadCsvFile = async (req, res, next) => {
+//   try {
+//     //Conver csv file into json Array
+//     var temp;
+//     var arrayToInsert = [];
+//     const subtasks = [];
+//     const idsOfAll=[];
+//     csvToJson()
+//       .fromFile(req.file.path)
+//       .then((jsonObj) => {
+//         // console.log(jsonObj);
+//         for (let i = 0; i < jsonObj.length; i++) {
+//           // if(jsonObj.types==="subtask"){
+//           var subTaskRow = {
+//             title: jsonObj[i]["title"],
+//             description: jsonObj[i]["description"],
+//             priority: jsonObj[i]["priority"],
+//             due_date: jsonObj[i]["due_date"],
+//             status: jsonObj[i]["status"],
+//             assign_to: jsonObj[i]["assign_to"],
+//             types: jsonObj[i]["types"],
+//             maintask: jsonObj[i]["maintask"],
+//             subtasks:jsonObj[i]["subtasks"],
+//           };
+//           const todo =new Todo(subTaskRow);
+//            todo.save();
+//           arrayToInsert.push(subTaskRow);
+//         }
+
+//         for (let i = 0; i <jsonObj.length; i++) {
+//         if(arrayToInsert[i].types==='subtask'){
+//           console.log("i am subtask"+"my main number is:"+i)
+//           const idFind= Todo.findOne({title: arrayToInsert[i].title})
+//           console.log(""+idFind)
+//           }
+//         }
+//         //insertmany is used to save bulk data in database.
+//         //saving the data in collection(table)
+//         // Todo.insertMany(arrayToInsert, async (err, data) => {
+//         //   if (err) {
+//         //     console.log(err);
+//         //   } else {
+//         //     let saveTodo,save1;
+//         //     for (let i = 0; i < jsonObj.length; i++) {
+                 
+//         //     }
+        
+//             return res.status(201).json({
+//               message: "It is done",
+//             });
+//         //   }
+//         // });
+//       });
+//   } catch (err) {
+//     console.log(err);
+//     next(globalErrorHandler(err));
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //Addinational using aggrigation
@@ -434,3 +532,95 @@ exports.uploadCsvFile=async(req,res,next)=>{
 //     },
 //   });
 // };
+
+
+
+exports.uploadCsvFile = async (req, res, next) => {
+  try {
+    // Parse the CSV file using csv-parser
+    const results = [];
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // Create an object to hold the main tasks and subtasks separately
+        const mainTasks = [];
+        const subTasks = [];
+
+        // Separate the main tasks and subtasks
+        results.forEach((row) => {
+          const task = {
+            title: row.title,
+            description: row.description,
+            priority: row.priority,
+            due_date: row.due_date,
+            status: row.status,
+            assign_to: row.assign_to,
+            types: row.types,
+            srno: row.srno,
+          };
+
+          if (task.types === 'main') {
+            mainTasks.push(task);
+          } else {
+            subTasks.push(task);
+          }
+        });
+        // Save the main tasks and get their IDs
+        const mainTaskIds = [];
+        for (const task of mainTasks) {
+          const newTask = new Todo({
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            due_date: task.due_date,
+            status: task.status,
+            assign_to: task.assign_to,
+            types: task.types,
+          });
+          const savedTask = await newTask.save();
+          console.log("Main task:"+savedTask);
+          mainTaskIds[task.srno] = savedTask._id;
+          // mainTaskIds.push(savedTask._id);
+          console.log("Id of main tasks:"+savedTask._id);
+        }
+
+        // Assign the subtasks to their main tasks using their srno
+        for (const subTask of subTasks) {
+          const parentTaskId = mainTaskIds[subTask.srno];
+          // if (parentTaskId) {
+            const newSubTask = new Todo({
+              title: subTask.title,
+              description: subTask.description,
+              priority: subTask.priority,
+              due_date: subTask.due_date,
+              status: subTask.status,
+              assign_to: subTask.assign_to,
+              types: subTask.types,
+            });
+  
+            const savedSubTask = await newSubTask.save();
+            console.log("subtask is:"+savedSubTask);
+            console.log("id of savedtasks is:"+savedSubTask._id);
+    
+              results.forEach(async(row)=>{
+                if(!row.srno){
+              const parentTask = await Todo.findById(parentTaskId);
+                  
+                }
+              })
+            // const parentTask = await Todo.findById(parentTaskId);
+            // parentTask.subtasks.push(savedSubTask._id);
+            // await parentTask.save(); // Save the changes to the parent main task to the database
+          // }
+        }
+
+        return res.status(201).json({
+          message: 'Data saved successfully',
+        });
+      });
+  } catch (error) {
+    console.log(error);
+    next(globalErrorHandler(error));
+  }
+};

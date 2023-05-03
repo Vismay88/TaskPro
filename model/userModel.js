@@ -22,6 +22,17 @@ const userSchema = new mongoose.Schema(
       minlength: [8, "Password must have at least 8 characters"],
       select: false,
     },
+    confirmPassword: {
+      type: String,
+      required: [true, 'Please confirm your password'],
+      validate: {
+        // This only works on CREATE and SAVE!!!
+        validator: function(el) {
+          return el === this.password;
+        },
+        message: 'Passwords are not the same!'
+      }
+    },
     gender: {
       type: String,
       enum: [constants.MALE, constants.FEMALE, constants.OTHER],
@@ -61,7 +72,8 @@ userSchema.pre("save", async function (next) {
 
   // Hash the password with cost of 12
   this.password = await bcrypt.hash(this.password, 12);
-
+ // Delete passwordConfirm field
+ this.passwordConfirm = undefined;
   next();
 });
 

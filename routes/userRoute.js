@@ -14,17 +14,15 @@ function ensureAuthenticated(req, res, next) {
       return next();
     }
     next(new AppError("Welcome to this site. Please log in to continue.",400))
-    // res.status(401).json({ 
-
-    //   message: 'Welcome to this site. Please log in to continue.'});
+    
   }
 
 router.post('/register',photoController.uploadPhoto,userSchema.userChecking,authController.userRegister);
 router.post('/login',authController.login);
+router.get('/logout',authController.userLogout);
 
 router.use(ensureAuthenticated)
 
-router.get('/logout',authController.userLogout);
 router.get('/:userid',userController.getUserById);
 router.patch('/:userid',photoController.uploadPhoto,updateUserValidation.userChecking,userController.updateUser)
 router.delete('/:userid',userController.deleteUser)

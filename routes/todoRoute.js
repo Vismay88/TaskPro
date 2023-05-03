@@ -1,9 +1,22 @@
 const express=require('express');
 const router = express.Router();
+const AppError = require("../Error/appError");
 const todoController=require('./../controller/todoController');
 const userController=require('./../controller/userController');
 const todoSchema = require("./../validatation/todoValidation");
 const csvController=require("./../controller/csvController");
+const ensureLoggedIn= require('connect-ensure-login').ensureLoggedIn();
+
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    next(new AppError("Welcome to this site. Please log in to continue.",400))
+    // res.status(401).json({ 
+
+    //   message: 'Welcome to this site. Please log in to continue.'});
+  }
+  router.use(ensureAuthenticated)
 
 router.route('/').
 post(todoSchema.todoChecking,todoController.createTodo)

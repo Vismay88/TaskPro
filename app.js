@@ -6,6 +6,7 @@ const AppError = require("./Error/appError");
 const globalErrorHandler = require("./Error/globalErrorHandler");
 const session = require("express-session");
 const passport = require("passport");
+const cookieParser = require('cookie-parser');
 const LocalStrategy = require("passport-local").Strategy;
 const cors = require("cors");
 const path = require('path');
@@ -13,7 +14,11 @@ const User = require("./model/userModel");
 const Photo=require("./model/photoModel")
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json());
 
 // app.use(express.static('public'));
@@ -24,9 +29,10 @@ app.use(express.urlencoded({ extended: false,limit: '10kb' }));
 
 app.use(
   session({
-    secret: "secret",
+    secret: "secret_code",
     resave: false,
     saveUninitialized: false,
+    cookie:{expires :new Date(Date.now()+ 3600000000)}
   })
 );
 app.use((req, res, next) => {

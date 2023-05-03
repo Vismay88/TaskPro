@@ -25,13 +25,32 @@ exports.userChecking = async (req, res, next) => {
 
     password: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,12}$/)
+      .pattern(/^(?=.*[!@#$%^&*_=+-]).{8,12}$/)
       .messages({
         "string.empty": "password cannot be empty",
         "string.pattern.base": "Please enter valid password",
         "any.required": "Password is required",
         "string.min": "Password length must be at minimum 8 characters long",
       }).required(),
+
+
+      confirmPassword:Joi.any().equal(Joi.ref('password')).required().label('Confirm password')
+     .                  options({ messages: { 'any.only': '{{#label}} does not match'} }),
+    //  confirmPassword:Joi.string().valid(Joi.ref('password'))
+    //  .options({ messages: {
+    //   "string.empty": "Confirmpassword cannot be empty",
+    //    'any.required': 'Confirm Password does not match',
+      
+    //   } }).required(),
+    //  Joi.string() 
+    //  .min(8)
+    //   .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,12}$/)
+    //   .messages({
+    //     "string.empty": "ConfirmPassword cannot be empty",
+    //     "string.pattern.base": "Please enter valid Confirmpassword",
+    //     "any.required": "ConfirmPassword is required",
+    //     "string.min": "ConfirmPassword length must be at minimum 8 characters long",
+    //   }).required(),
 
       photo:Joi.string().allow(null,'').optional(),
 

@@ -12,6 +12,7 @@ const constants = require("./../utils/constant");
 const globalSuccess=require("./../Error/globalSuccess")
 const APIFeatures = require("./../utils/apiFeatures");
 
+
 //Create User
 exports.createUser = async (req, res, next) => {
   try {
@@ -58,7 +59,7 @@ exports.getAllUsers = async (req, res, next) => {
       .limitFields()
       .paginate();
     const users = await User.find();
-    const userget = await features.query.populate("assigned_tasks").select("name email") // used for seeing particular info
+    const userget = await features.query.populate("assigned_tasks photo").select("name email") // used for seeing particular info
     const data = await userget;
     if (!userget) {
       return next(AppError("No users are there", 404));
@@ -199,12 +200,6 @@ exports.deleteImage = async (req, res, next) => {
     console.log(user);
     user.save();
 
-    // res.status(200).json({
-    //   // status: "success",
-    //   error:constants.FALSE,
-    //   message: "Your profile pic deleted successfully",
-    //   // user,
-    // });
     return globalSuccess.sendResponse(201, 'Your profile picture deleted successfully',user, res);
   } catch (err) {
     console.log(err);

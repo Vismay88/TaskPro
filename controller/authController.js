@@ -6,7 +6,8 @@ const passport = require("passport");
 const Photo=require("./../model/photoModel")
 const LocalStrategy = require("passport-local").Strategy;
 const constant=require("./../utils/constant");
-const globalSuccess=require("./../Error/globalSuccess")
+const globalSuccess=require("./../Error/globalSuccess");
+const { cookie } = require("express-validator");
 
 //Passport use method
 passport.use(
@@ -45,11 +46,11 @@ exports.userRegister = async (req, res, next) => {
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
+      confirmPassword:req.body.confirmPassword,
       gender: req.body.gender,
-      photo:req.file
-    });
-
-   console.log("Hi");
+      photo:req.file,
+    })
+  //  console.log("Hi");
     if (req.file ){
       // If user uploaded a photo, use it
       console.log("i am here if");
@@ -66,13 +67,13 @@ exports.userRegister = async (req, res, next) => {
         user.photo = defaultPhotoFind._id;
       }
     }
-
-    const savedUser = await user.save();
+    await user.save();
+    const userDisplay=await User.findOne({email:req.body.email}).populate("photo").select('-password -confirmPassword');
     //If User not saved
-    if (!savedUser) {
+    if (!user) {
       next(new AppError("Account not created please try again", 401));
     }
-    return globalSuccess.sendResponse(201, 'Your account is created successfully',savedUser, res);
+    return globalSuccess.sendResponse(201, 'Your account is created successfully',userDisplay, res);
   } catch (err) {
     console.log(err.message)
     next(globalErrorHandler(err));
@@ -85,7 +86,7 @@ exports.login=async(req,res,next)=>{
             return next(err);
         }
         if(!user){
-            return res.status(401).json({
+            return res.status(404).json({
                 error:constant.TRUE,
                 message:info.message,
             });
@@ -94,14 +95,15 @@ exports.login=async(req,res,next)=>{
             if(err){
                 return next(err);
             }
+            // user=user.populate("photo")
             return globalSuccess.sendResponse(200, 'You have been successfully logged in ',user, res);
-           
         });
     })(req,res,next);
 };
 
 exports.userLogout = (req, res) => {
- 
+  // console.log("Logout below:")
+  //  console.log(req)
     req.session.destroy(function (err) {
         if (!err) {
             res.status(200).clearCookie('connect.sid', {path: '/'}).json({
