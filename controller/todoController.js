@@ -5,11 +5,12 @@ const user = require("./../model/userModel");
 const userController = require("./userController");
 const APIFeatures = require("./../utils/apiFeatures");
 const Path = require("path");
-const csv=require("csv-parser");
-const fs = require('fs');
+const csv = require("csv-parser");
+const fs = require("fs");
 const todoSchema = require("./../validatation/todoValidation");
 const globalErrorHandler = require("./../Error/globalErrorHandler");
 const globalSuccess = require("./../Error/globalSuccess");
+const { Console } = require("console");
 // const { error } = require("console");
 
 //create Task and Subtask in
@@ -349,7 +350,7 @@ exports.deleteAssignTo = async (req, res, next) => {
 };
 // exports.uploadCsvFile = async (req, res, next) => {
 //   try {
-   
+
 //     const path = Path.resolve(__dirname,'public','image1.jpg')
 
 //     const results = [];
@@ -363,7 +364,7 @@ exports.deleteAssignTo = async (req, res, next) => {
 //           subtasks.push(data);
 //           return;
 //         }
-       
+
 //         const todoData = {
 //           title: data.title,
 //           description: data.description,
@@ -457,9 +458,9 @@ exports.deleteAssignTo = async (req, res, next) => {
 //         //   } else {
 //         //     let saveTodo,save1;
 //         //     for (let i = 0; i < jsonObj.length; i++) {
-                 
+
 //         //     }
-        
+
 //             return res.status(201).json({
 //               message: "It is done",
 //             });
@@ -471,25 +472,6 @@ exports.deleteAssignTo = async (req, res, next) => {
 //     next(globalErrorHandler(err));
 //   }
 // };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //Addinational using aggrigation
 // exports.getTodoo = async (req, res) => {
@@ -533,7 +515,115 @@ exports.deleteAssignTo = async (req, res, next) => {
 //   });
 // };
 
+// exports.uploadCsvFile = async (req, res, next) => {
+//   try {
+//     // Parse the CSV file using csv-parser
+//     const results = [];
+//     fs.createReadStream(req.file.path)
+//       .pipe(csv())
+//       .on("data", (data) => results.push(data))
+//       .on("end", async () => {
+//         // Create an object to hold the main tasks and subtasks separately
+//         const mainTasks = [];
+//         const subTasks = [];
 
+//         // Separate the main tasks and subtasks
+//         results.forEach((row) => {
+//           const task = {
+//             title: row.title,
+//             description: row.description,
+//             priority: row.priority,
+//             due_date: row.due_date,
+//             status: row.status,
+//             assign_to: row.assign_to,
+//             types: row.types,
+//             parentNo: row.parentNo,
+//           };
+
+//           if (task.types === "main") {
+//             mainTasks.push(task);
+//           } else {
+//             subTasks.push(task);
+//             // console.log(subTasks);
+//           }
+//         });
+//         // Save the main tasks and get their IDs
+//         const mainTaskIds = [];
+//         // if(mainTasks.types==="main"){
+//         for (const task of mainTasks) {
+//           const newTask = new Todo({
+//             title: task.title,
+//             description: task.description,
+//             priority: task.priority,
+//             due_date: task.due_date,
+//             status: task.status,
+//             assign_to: task.assign_to,
+//             types: task.types,
+//           });
+//           const savedTask = await newTask.save();
+//           console.log("Main task is:" + savedTask);
+//           mainTaskIds[task.parentNo] = savedTask._id;
+//           console.log("Assoicated maintask" + mainTaskIds);
+//           mainTaskIds.push(savedTask._id);
+//           // console.log("Id of main tasks:"+savedTask._id);
+//         }
+//         // }
+//         // Assign the subtasks to their main tasks using their srno
+//         // const subTaskIds = [];
+
+//         for (const subTask of subTasks) {
+//           if (!subTask.parentNo) {
+//             return res.status(404).json({
+//               data: subTask,
+//               message: "There is no main task for this",
+//             });
+//           }
+//           const parentTaskId = mainTaskIds[subTask.parentNo];
+//           if (parentTaskId) {
+//             const newSubTask = new Todo({
+//               title: subTask.title,
+//               description: subTask.description,
+//               priority: subTask.priority,
+//               due_date: subTask.due_date,
+//               status: subTask.status,
+//               assign_to: subTask.assign_to,
+//               types: subTask.types,
+//             });
+
+//             const savedSubTask = await newSubTask.save();
+           
+//             console.log("Subtask:" + savedSubTask);
+//             const parentTask = await Todo.findById(parentTaskId);
+//             console.log("Corrosponding id of main task:" + parentTask._id);
+//             parentTask.subtasks.push(savedSubTask._id);
+//             await parentTask.save(); // Save the changes to the parent main task to the database
+//             // if(subTask.srno){
+
+//             // }
+//             // console.log("subtask is:"+savedSubTask);
+//             // console.log("id of savedtasks is:"+savedSubTask._id);
+
+//             // results.forEach(async(row)=>{
+//             //   if(!row.srno){
+//             // const parentTask = await Todo.findById(parentTaskId);
+
+//             //   }
+//             // })
+//           }
+//         }
+//         return res.status(201).json({
+//           message: "Data saved successfully",
+//         });
+//       });
+//   } catch (err) {
+//     console.log(err);
+//     next(globalErrorHandler(err));
+//   }
+// };
+
+
+
+//////////////////////////
 
 exports.uploadCsvFile = async (req, res, next) => {
   try {
@@ -544,11 +634,13 @@ exports.uploadCsvFile = async (req, res, next) => {
       .on('data', (data) => results.push(data))
       .on('end', async () => {
         // Create an object to hold the main tasks and subtasks separately
-        const mainTasks = [];
+        let mainTasks = {};
         const subTasks = [];
+        let subTasksof = {};
+
 
         // Separate the main tasks and subtasks
-        results.forEach((row) => {
+        results.forEach((row,index) => {
           const task = {
             title: row.title,
             description: row.description,
@@ -558,17 +650,25 @@ exports.uploadCsvFile = async (req, res, next) => {
             assign_to: row.assign_to,
             types: row.types,
             srno: row.srno,
+            index:row.index
           };
 
           if (task.types === 'main') {
-            mainTasks.push(task);
+            mainTasks[index] = task;
+            // console.log("................")
+            console.log("Main task:"+JSON.stringify(mainTasks));
+            // console.log("................")
           } else {
-            subTasks.push(task);
+            // console.log("................")
+            // subTasks.push(task);
+            subTasksof[index]=task;
+            console.log("sub task:"+JSON.stringify(subTasksof));
+            // console.log("Subtask is:"+JSON.stringify(subTasks)+"Sr no is:"+task.srno)
           }
         });
         // Save the main tasks and get their IDs
-        const mainTaskIds = [];
-        for (const task of mainTasks) {
+             const mainTaskIds = [];
+        for (const [index, task] of Object.entries(mainTasks)) {
           const newTask = new Todo({
             title: task.title,
             description: task.description,
@@ -579,16 +679,19 @@ exports.uploadCsvFile = async (req, res, next) => {
             types: task.types,
           });
           const savedTask = await newTask.save();
-          console.log("Main task:"+savedTask);
-          mainTaskIds[task.srno] = savedTask._id;
-          // mainTaskIds.push(savedTask._id);
-          console.log("Id of main tasks:"+savedTask._id);
+          mainTasks[index] = savedTask._id;// Store the task object with its id as well
+          mainTaskIds.push(mainTasks[index]);
+          console.log("First one:"+mainTasks[index]);
         }
-
-        // Assign the subtasks to their main tasks using their srno
-        for (const subTask of subTasks) {
-          const parentTaskId = mainTaskIds[subTask.srno];
-          // if (parentTaskId) {
+        // Assign the subtasks to their main tasks using the corresponding row number
+        for (const [index,subTask]of Object.entries(subTasksof)) {
+          const parentTask = mainTasks[subTask.srno-1];
+          console.log(subTask.srno);
+          // console.log("task 1:"+mainTasks[1]) // Get the main task object using its corresponding row number
+          console.log("task 2:"+mainTasks[2]);
+          // console.log("Below:");
+          console.log(parentTask);
+          if (parentTask) {
             const newSubTask = new Todo({
               title: subTask.title,
               description: subTask.description,
@@ -597,22 +700,18 @@ exports.uploadCsvFile = async (req, res, next) => {
               status: subTask.status,
               assign_to: subTask.assign_to,
               types: subTask.types,
+              // parent: parentTask.id, // Set the parent field to the main task's id
             });
-  
+
             const savedSubTask = await newSubTask.save();
-            console.log("subtask is:"+savedSubTask);
-            console.log("id of savedtasks is:"+savedSubTask._id);
-    
-              results.forEach(async(row)=>{
-                if(!row.srno){
-              const parentTask = await Todo.findById(parentTaskId);
-                  
-                }
-              })
-            // const parentTask = await Todo.findById(parentTaskId);
-            // parentTask.subtasks.push(savedSubTask._id);
-            // await parentTask.save(); // Save the changes to the parent main task to the database
-          // }
+            console.log("Id of saved subtask:"+savedSubTask._id);
+            const parentTaskFind = await Todo.findById(parentTask);
+            console.log("The parent id is:"+parentTaskFind);
+            parentTaskFind.subtasks.push(savedSubTask._id);
+            await parentTaskFind.save();
+            // parentTask.subtasks.push(savedSubTask._id); // Push the subtask object to the parent main task's subtasks array
+            // await Todo.updateOne({ _id: parentTask.id }, { subtasks: parentTask.subtasks }); // Update the parent main task's subtasks array in the database
+          }
         }
 
         return res.status(201).json({

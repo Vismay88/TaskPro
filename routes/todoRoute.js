@@ -16,7 +16,7 @@ function ensureAuthenticated(req, res, next) {
 
     //   message: 'Welcome to this site. Please log in to continue.'});
   }
-  router.use(ensureAuthenticated)
+  // router.use(ensureAuthenticated)
 
 router.route('/').
 post(todoSchema.todoChecking,todoController.createTodo)
