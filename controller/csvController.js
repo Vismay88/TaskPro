@@ -37,6 +37,9 @@ const upload = multer({
 
 exports.uploadCsv = (req, res, next) => {
   upload.single("csv")(req, res, async (err) => {
+    if(!req.file){
+      return next(new AppError("Please attech csv files",400));
+    }
     if (err) {
       console.log(err);
       return next(new AppError(err.message, 400));

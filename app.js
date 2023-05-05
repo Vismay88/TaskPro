@@ -14,14 +14,11 @@ const User = require("./model/userModel");
 const Photo=require("./model/photoModel")
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  credentials: true
-}));
+app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
-// app.use(express.static('public'));
+app.use(express.static('public'));
 app.use(express.static(__dirname+'./public/'));
 
 app.use(express.json({ limit: '10kb' }));

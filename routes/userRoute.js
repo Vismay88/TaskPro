@@ -21,7 +21,7 @@ router.post('/register',photoController.uploadPhoto,userSchema.userChecking,auth
 router.post('/login',authController.login);
 router.get('/logout',authController.userLogout);
 
-// router.use(ensureAuthenticated)
+router.use(ensureAuthenticated)
 
 router.get('/:userid',userController.getUserById);
 router.patch('/:userid',photoController.uploadPhoto,updateUserValidation.userChecking,userController.updateUser)
