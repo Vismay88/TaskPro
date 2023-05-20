@@ -14,7 +14,7 @@ Getting Started
 
 Follow these steps to set up and run the MyToDoApp Backend on your local machine:
 
-Clone the repository: git clone https://github.com/your-username/my-todo-app-backend.git
+Clone the repository: git clone https://github.com/Vismay88/TaskPro.git
 Install dependencies: npm install
 Configure environment variables: Rename the .env.example file to .env and update the necessary variables, such as database connection details and secret keys.
 Start the server: npm start
